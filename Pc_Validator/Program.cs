@@ -33,7 +33,7 @@ namespace Pc_Validator
                 { 
                     foreach (var cpu in myDeserializedClass.CPUs)
                     {
-                        Console.WriteLine($"Name:{cpu.Name} \n Price:{cpu.Price}$");
+                        Console.WriteLine($"Name:{cpu.Name} - {cpu.Socket}, {cpu.SupportedMemory} \n Price:{cpu.Price}$");
 
                     };
                 }
@@ -42,7 +42,7 @@ namespace Pc_Validator
                 {
                     foreach (var board in myDeserializedClass.Motherboards)
                     {
-                        Console.WriteLine($"Name:{board.Name} \n Price:{board.Price}$");
+                        Console.WriteLine($"Name:{board.Name} - {board.Socket} \n Price:{board.Price}$");
 
                     };
                 }
@@ -51,12 +51,13 @@ namespace Pc_Validator
                 {
                     foreach (var memory in myDeserializedClass.Memory)
                     {
-                        Console.WriteLine($"Name:{memory.Name} \n Price:{memory.Price}$");
+                        Console.WriteLine($"Name:{memory.Name} - {memory.Type} \n Price:{memory.Price}$");
 
                     };
                 }
 
             }
+
 
         }
 
