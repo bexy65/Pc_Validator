@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace Pc_Validator
 {
@@ -14,6 +15,18 @@ namespace Pc_Validator
             string jsonString = File.ReadAllText("C:\\Users\\bexy\\source\\repos\\Pc_Validator\\Pc_Validator\\pc-store-inventory.json");
             Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(jsonString);
 
+            var cpuPar = myDeserializedClass.CPUs;
+            var memPar = myDeserializedClass.Memory;
+            var boardPar = myDeserializedClass.Motherboards;
+
+            var compatibleCpuOne = cpuPar.Where(p => p.SupportedMemory == "DDR4" || p.Socket == "AM4");
+            var compatibleCpuTwo = cpuPar.Where(p => p.SupportedMemory == "DDR5" || p.Socket == "AM5");
+
+
+            foreach (var p in compatibleCpuOne)
+            {
+                Console.WriteLine(p.PartNumber);
+            }
             //Checking the inventory
             if (myDeserializedClass == null)
             {
@@ -33,7 +46,7 @@ namespace Pc_Validator
                 { 
                     foreach (var cpu in myDeserializedClass.CPUs)
                     {
-                        Console.WriteLine($"Name:{cpu.Name} - {cpu.Socket}, {cpu.SupportedMemory} \n Price:{cpu.Price}$");
+                        Console.WriteLine($" Name:{cpu.Name} \n Part number: {cpu.PartNumber} - {cpu.Socket}, {cpu.SupportedMemory} \n Price: {cpu.Price}$");
 
                     };
                 }
@@ -42,7 +55,7 @@ namespace Pc_Validator
                 {
                     foreach (var board in myDeserializedClass.Motherboards)
                     {
-                        Console.WriteLine($"Name:{board.Name} - {board.Socket} \n Price:{board.Price}$");
+                        Console.WriteLine($" Name:{board.Name} \n Part number: {board.PartNumber} - {board.Socket} \n Price: {board.Price}$");
 
                     };
                 }
@@ -51,17 +64,30 @@ namespace Pc_Validator
                 {
                     foreach (var memory in myDeserializedClass.Memory)
                     {
-                        Console.WriteLine($"Name:{memory.Name} - {memory.Type} \n Price:{memory.Price}$");
+                        Console.WriteLine($" Name:{memory.Name} \n Part number:{memory.PartNumber} - {memory.Type} \n Price: {memory.Price}$");
 
                     };
                 }
 
             }
 
+            Console.WriteLine("Please enter part number(s): ");
+            for (int i = 0; i < componentCategory.Length; i++)
+            {
+                string input = Console.ReadLine();
+                
 
+            }
+
+
+
+           
         }
 
+  
+
     }
+
     public abstract class Components
     {
         public string ComponentType { get; set; }
@@ -93,6 +119,7 @@ namespace Pc_Validator
         public List<CPU> CPUs { get; set; }
         public List<Memory> Memory { get; set; }
         public List<Motherboard> Motherboards { get; set; }
+
     }
 
 
