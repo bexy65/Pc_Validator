@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.Json;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Reflection;
 
 namespace Pc_Validator
 {
@@ -13,49 +14,21 @@ namespace Pc_Validator
         static void Main(string[] args)
         {
             string jsonString = File.ReadAllText("C:\\Users\\bexy\\source\\repos\\Pc_Validator\\Pc_Validator\\pc-store-inventory.json");
-            Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(jsonString);
+            var data = JsonConvert.DeserializeObject<Root>(jsonString);
 
-            var cpuPar = myDeserializedClass.CPUs;
-            var memPar = myDeserializedClass.Memory;
-            var boardPar = myDeserializedClass.Motherboards;
+            var cpuPar = data.CPUs;
+            var memPar = data.Memory;
+            var boardPar = data.Motherboards;
 
-            //var compatibleCpuOne = cpuPar.Where(p => p.SupportedMemory == "DDR4" && p.Socket == "AM4");
-            //var compatibleCpuTwo = cpuPar.Where(p => p.SupportedMemory == "DDR5" && p.Socket == "AM5");
-            //var compatibleCpuThird = cpuPar.Where(p => p.SupportedMemory == "DDR5" && p.Socket == "LGA1700");
-            //var compatibleCpuFourth = cpuPar.Where(p => p.SupportedMemory == "DDR4" && p.Socket == "LGA1200");
-
-            //var compatibleMemOne = memPar.Where(p => p.Type == "DDR5");
-            //var compatibleMemTwo = memPar.Where(p => p.Type == "DDR4");
-
-            //var compatibleBoardOne = boardPar.Where(p => p.Socket == "AM4");
-            //var compatibleBoardTwo = boardPar.Where(p => p.Socket == "AM5");
-            //var compatibleBoardThird = boardPar.Where(p => p.Socket == "LGA1700");
-            //var compatibleBoardFourth = boardPar.Where(p => p.Socket == "LGA1200");
-
-            
-
-
-            //foreach (var foo in compatibleMemOne)
-            //{
-            //    Console.WriteLine($"{foo.Name}, {foo.PartNumber}, {foo.Price}");
-            //}
-
-            //foreach (var p in compatibleCpuOne)
-            //{
-            //    Console.WriteLine(p.PartNumber);
-            //}
-
-            //foreach (var p in compatibleCpuTwo)
-            //{
-            //    Console.WriteLine(p.PartNumber);
-            //}
+            //Storing products from input
+            List<string> finalProducts = new List<string>();
 
 
             //Checking the inventory
-            if (myDeserializedClass == null)
+            if (data == null)
             {
                 Console.WriteLine("No items in inventory!");
-            };
+            }
 
             string[] componentCategory = { "CPUs", "Motherboards", "Memory" };
 
@@ -63,60 +36,116 @@ namespace Pc_Validator
             Console.WriteLine();
 
             //Listing items in inventory to client
-            for(int i = 0;i < componentCategory.Length; i++)
+            for (int i = 0; i < componentCategory.Length; i++)
             {
                 Console.WriteLine($"\n{componentCategory[i]}");
-                if (componentCategory[i] == "CPUs") 
-                { 
-                    foreach (var cpu in myDeserializedClass.CPUs)
-                    {
-                        Console.WriteLine($" Name:{cpu.Name} \n Part number: {cpu.PartNumber} - {cpu.Socket}, {cpu.SupportedMemory} \n Price: {cpu.Price}$");
-
-                    };
-                }
-
-                else if (componentCategory[i] == "Motherboards")
+                if (componentCategory[i] == "CPUs")
                 {
-                    foreach (var board in myDeserializedClass.Motherboards)
+                    foreach (var cpu in data.CPUs)
                     {
-                        Console.WriteLine($" Name:{board.Name} \n Part number: {board.PartNumber} - {board.Socket} \n Price: {board.Price}$");
+                        Console.WriteLine($" Name:{cpu.Name} \n Part number: {cpu.PartNumber} - Socket: {cpu.Socket}, Supported memory: {cpu.SupportedMemory} \n Price: {cpu.Price}$");
 
                     };
                 }
 
                 else if (componentCategory[i] == "Memory")
                 {
-                    foreach (var memory in myDeserializedClass.Memory)
+                    foreach (var memory in data.Memory)
                     {
-                        Console.WriteLine($" Name:{memory.Name} \n Part number:{memory.PartNumber} - {memory.Type} \n Price: {memory.Price}$");
+                        Console.WriteLine($" Name:{memory.Name} \n Part number:{memory.PartNumber} - Memory type: {memory.Type} \n Price: {memory.Price}$");
 
                     };
                 }
 
+                else if (componentCategory[i] == "Motherboards")
+                {
+                    foreach (var board in data.Motherboards)
+                    {
+                        Console.WriteLine($" Name:{board.Name} \n Part number: {board.PartNumber} - Socket: {board.Socket} \n Price: {board.Price}$");
+
+                    };
+                }
+
+
             }
 
-            string input;
-            Console.WriteLine("Please enter part number(s): ");
-            input = Console.ReadLine();
-            var array = input.Split(' ');
+            //Getting separate inputs to store them in array, to manipulate it on further.
+            string[] input = new string[3];
+            Console.WriteLine("Enter the following information for the part you want to combine:");
+            Console.Write("CPU`s part number: ");
+            input[0] = Console.ReadLine();
+            Console.Write("Memory part number: ");
+            input[1] = Console.ReadLine();
+            Console.Write("Motherboard part number: ");
+            input[2] = Console.ReadLine();
 
-            if (array.Length <= 2)
+
+
+            //Checking if part numbers user provides its correct/in order
+            if (!cpuPar.Any(c => c.PartNumber == input[0]))
             {
-                for (var i = 0; i < array.Length; i++)
+                Console.WriteLine("Wrong CPU part number! \nPlease use correct part numbers of the items listed above!");
+                Console.WriteLine();
+            }
+            if (!memPar.Any(m => m.PartNumber == input[1]))
+            {
+                Console.WriteLine("Wrong Memory part number \nPlease use correct part numbers of the items listed above!");
+                Console.WriteLine();
+            }
+            if (!boardPar.Any(b => b.PartNumber == input[2]))
+            {
+                Console.WriteLine("Wrong Memory part number \nPlease use correct part numbers of the items listed above!");
+                Console.WriteLine();
+            }
+
+
+            //----------------///
+
+            bool isValid = false;
+            //Validation for the parts if they are compatible
+            foreach (var x in cpuPar)
+            {
+                if (x.PartNumber == input[0])
+                {
+                    foreach (var y in memPar)
+                    {
+                        if (y.PartNumber == input[1])
+                        {
+                            foreach (var z in boardPar)
+                            {
+                                if (z.PartNumber == input[2])
+                                {
+                                    if (x.SupportedMemory == y.Type && x.Socket == z.Socket)
+                                    {
+                                        isValid = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!isValid)
+            {
+                for (var i = 0; i < input.Length; i++)
                 {
                     foreach (var cpu in cpuPar)
                     {
-                        if (array[i] == cpu.PartNumber)
+                        if (input[i] == cpu.PartNumber)
                         {
-                            Console.WriteLine("Here is the compatible memories");
+                            Console.WriteLine("Here is the compatible memories for this CPU");
                             foreach (var p in memPar)
                             {
                                 if (cpu.SupportedMemory == p.Type)
                                 {
                                     Console.WriteLine($"Name: {p.Name}, part number: {p.PartNumber}");
                                 }
+
                             }
-                            Console.WriteLine("Here is the compatible motherboards");
+
+                            Console.WriteLine("Here is the compatible motherboards for this CPU");
                             foreach (var b in boardPar)
                             {
                                 if (cpu.Socket == b.Socket)
@@ -129,15 +158,14 @@ namespace Pc_Validator
 
                     foreach (var memory in memPar)
                     {
-                        if (array[i] == memory.PartNumber)
+                        if (input[i] == memory.PartNumber)
                         {
-                            Console.WriteLine("Here is the compatible CPU`s");
+                            Console.WriteLine("Here is the compatible CPU`s for this type of memory");
                             foreach (var cpu in cpuPar)
                             {
                                 if (cpu.SupportedMemory == memory.Type)
                                 {
                                     Console.WriteLine($"Name: {cpu.Name}, part number: {cpu.PartNumber}");
-
                                 }
                             }
 
@@ -146,9 +174,9 @@ namespace Pc_Validator
 
                     foreach (var board in boardPar)
                     {
-                        if (input == board.PartNumber)
+                        if (input[i] == board.PartNumber)
                         {
-                            Console.WriteLine("Here is the compatible CPU`s");
+                            Console.WriteLine("Here is the compatible CPU`s for this motherboard");
                             foreach (var cpu in cpuPar)
                             {
                                 if (board.Socket == cpu.Socket)
@@ -156,80 +184,85 @@ namespace Pc_Validator
                                     Console.WriteLine($"Name: {cpu.Name}, part number: {cpu.PartNumber}");
                                 }
                             }
-
                         }
                     }
                 }
             }
-            else if (array.Length == 3)
+
+            else
             {
                 double totalPrice = 0;
-                for (var i = 0; i < array.Length; i++)
+
+                for (var i = 0; i < input.Length; i++)
                 {
                     foreach (var cpu in cpuPar)
                     {
-                        if (array[i] == cpu.PartNumber)
+                        if (input[i] == cpu.PartNumber)
                         {
+                            finalProducts.Add(input[i]);
                             totalPrice += cpu.Price;
-                            Console.WriteLine($"{cpu.Price}, {cpu.Name}");
+                            Console.WriteLine($"{cpu.Name}, {cpu.Price} $");
                         }
                     }
 
                     foreach (var memory in memPar)
                     {
-                        if (array[i] == memory.PartNumber)
+                        if (input[i] == memory.PartNumber)
                         {
+                            finalProducts.Add(input[i]);
                             totalPrice += memory.Price;
-                            Console.WriteLine($"{memory.Price}, {memory.Name}");
+                            Console.WriteLine($"{memory.Name}, {memory.Price} $");
                         }
                     }
 
                     foreach (var board in boardPar)
                     {
-                        if (array[i] == board.PartNumber)
+                        if (input[i] == board.PartNumber)
                         {
+                            finalProducts.Add(input[i]);
                             totalPrice += board.Price;
-                            Console.WriteLine($"{board.Price}, {board.Name}");
+                            Console.WriteLine($"{board.Name}, {board.Price} $");
                         }
                     }
                 }
 
-                Console.WriteLine(totalPrice);
+                Console.WriteLine($"Total cost of parts: {totalPrice} $");
             }
         }
     }
 
+
     public abstract class Components
     {
-        public string ComponentType { get; set; }
-        public string PartNumber { get; set; }
-        public string Name { get; set; }
+        public string? ComponentType { get; set; }
+        public string? PartNumber { get; set; }
+        public string? Name { get; set; }
         public double Price { get; set; }
 
     }
 
     public class CPU : Components
     {
-        public string SupportedMemory { get; set; }
-        public string Socket { get; set; }
-       
+        public string? SupportedMemory { get; set; }
+        public string? Socket { get; set; }
+
     }
 
     public class Memory : Components
     {
-        public string Type { get; set; }
+        public string? Type { get; set; }
     }
 
     public class Motherboard : Components
     {
-        public string Socket { get; set; }
+        public string? Socket { get; set; }
     }
 
     public class Root
     {
-        public List<CPU> CPUs { get; set; }
-        public List<Memory> Memory { get; set; }
-        public List<Motherboard> Motherboards { get; set; }
+        public List<CPU>? CPUs { get; set; }
+        public List<Memory>? Memory { get; set; }
+        public List<Motherboard>? Motherboards { get; set; }
 
     }
 
